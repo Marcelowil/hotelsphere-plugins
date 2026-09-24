@@ -99,7 +99,8 @@
     <Compile Include="Base\PluginBase.cs" />
     <Compile Include="Business\QuartoBusiness.cs" />
     <Compile Include="DAO\QuartoDAO.cs" />
-    <Compile Include="Plugins\PreValidationCreate_hsp_quarto.cs" />
+    <Compile Include="Plugins\Quarto\PreValidationCreate_hsp_quarto.cs" />
+    <Compile Include="Plugins\Quarto\PreValidationUpdate_hsp_quarto.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

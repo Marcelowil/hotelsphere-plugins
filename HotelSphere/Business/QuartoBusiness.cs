@@ -13,10 +13,14 @@ namespace HotelSphere.Business
             _context = context;
         }
 
-        public void ValidarQuartoDuplicado(Entity target)
+        public void ValidarQuartoDuplicado(Entity target, Entity preImage = null)
         {
             QuartoDAO quartoDAO = new QuartoDAO(_context);
-            EntityCollection quartos = quartoDAO.BuscarQuartosPorHotel(target.GetAttributeValue<EntityReference>("hsp_hotel"));
+
+            EntityReference hotel = preImage == null ? target.GetAttributeValue<EntityReference>("hsp_hotel") 
+                : preImage.GetAttributeValue<EntityReference>("hsp_hotel");
+
+            EntityCollection quartos = quartoDAO.BuscarQuartosPorHotel(hotel);
 
             string numeroCadastrado = target.GetAttributeValue<string>("hsp_numerodoquarto");
 
