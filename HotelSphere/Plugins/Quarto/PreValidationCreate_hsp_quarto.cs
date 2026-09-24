@@ -2,7 +2,7 @@
 using HotelSphere.Business;
 using Microsoft.Xrm.Sdk;
 
-namespace HotelSphere.Plugins
+namespace HotelSphere.Plugins.Quarto
 {
     public class PreValidationCreate_hsp_quarto : PluginBase
     {
