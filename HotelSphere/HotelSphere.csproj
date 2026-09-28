@@ -97,8 +97,12 @@
   <ItemGroup>
     <Compile Include="Base\LocalPluginContext.cs" />
     <Compile Include="Base\PluginBase.cs" />
+    <Compile Include="Business\HospedeBusiness.cs" />
     <Compile Include="Business\QuartoBusiness.cs" />
     <Compile Include="DAO\QuartoDAO.cs" />
+    <Compile Include="Helper\DocumentoValidator.cs" />
+    <Compile Include="Plugins\Hospede\PreValidationCreate_hsp_hospede.cs" />
+    <Compile Include="Plugins\Hospede\PreValidationUpdate_hsp_hospede.cs" />
     <Compile Include="Plugins\Quarto\PreValidationCreate_hsp_quarto.cs" />
     <Compile Include="Plugins\Quarto\PreValidationUpdate_hsp_quarto.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
