@@ -16,6 +16,7 @@ namespace HotelSphere.Plugins.Hospede
             HospedeBusiness hospedeBusiness = new HospedeBusiness(context);
             hospedeBusiness.ValidarDataNascimentoFutura(target);
             hospedeBusiness.ValidarCpf(target);
+            hospedeBusiness.ConsultarCpfCadastradoPorHotel(target);
         }
     }
 }

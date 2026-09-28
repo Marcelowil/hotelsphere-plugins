@@ -1,4 +1,5 @@
 ﻿using HotelSphere.Base;
+using HotelSphere.DAO;
 using HotelSphere.Helper;
 using Microsoft.Xrm.Sdk;
 using System;
@@ -8,10 +9,12 @@ namespace HotelSphere.Business
     public class HospedeBusiness
     {
         private readonly LocalPluginContext _context;
+        private readonly HospedeDAO _hospedeDAO;
 
         public HospedeBusiness(LocalPluginContext context)
         {
             _context = context;
+            _hospedeDAO = new HospedeDAO(_context);
         }
 
         public void ValidarDataNascimentoFutura(Entity target)
@@ -30,6 +33,17 @@ namespace HotelSphere.Business
 
             if (!DocumentoValidator.CpfOuCnpjEhValido(cpf))
                 throw new InvalidPluginExecutionException("O CPF preenchido é inválido.");
+        }
+
+        public void ConsultarCpfCadastradoPorHotel(Entity target, Entity preImage = null)
+        {
+            EntityReference hotel = preImage == null ? target.GetAttributeValue<EntityReference>("hsp_hotel") :
+                preImage.GetAttributeValue<EntityReference>("hsp_hotel");
+
+            string cpf = target.GetAttributeValue<string>("hsp_cpf");
+
+            if (_hospedeDAO.ExisteCpfPorHotel(cpf, hotel))
+                throw new InvalidPluginExecutionException($"O CPF {cpf} já possuí cadastro neste hotel.");
         }
     }
 }
