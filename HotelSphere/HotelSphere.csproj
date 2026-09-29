@@ -101,6 +101,7 @@
     <Compile Include="Business\HotelBusiness.cs" />
     <Compile Include="Business\QuartoBusiness.cs" />
     <Compile Include="DAO\HospedeDAO.cs" />
+    <Compile Include="DAO\HotelDAO.cs" />
     <Compile Include="DAO\QuartoDAO.cs" />
     <Compile Include="Helper\DocumentoValidator.cs" />
     <Compile Include="Plugins\Hospede\PreValidationCreate_hsp_hospede.cs" />
