@@ -100,9 +100,11 @@
     <Compile Include="Business\HospedeBusiness.cs" />
     <Compile Include="Business\HotelBusiness.cs" />
     <Compile Include="Business\QuartoBusiness.cs" />
+    <Compile Include="Business\TarifaBusiness.cs" />
     <Compile Include="DAO\HospedeDAO.cs" />
     <Compile Include="DAO\HotelDAO.cs" />
     <Compile Include="DAO\QuartoDAO.cs" />
+    <Compile Include="DAO\TarifaDAO.cs" />
     <Compile Include="Helper\DocumentoValidator.cs" />
     <Compile Include="Plugins\Hospede\PreValidationCreate_hsp_hospede.cs" />
     <Compile Include="Plugins\Hospede\PreValidationUpdate_hsp_hospede.cs" />
@@ -110,6 +112,8 @@
     <Compile Include="Plugins\Hotel\PreValidationUpdate_hsp_hotel.cs" />
     <Compile Include="Plugins\Quarto\PreValidationCreate_hsp_quarto.cs" />
     <Compile Include="Plugins\Quarto\PreValidationUpdate_hsp_quarto.cs" />
+    <Compile Include="Plugins\Tarifa\PreValidationCreate_hsp_tarifa.cs" />
+    <Compile Include="Plugins\Tarifa\PreValidationUpdate_hsp_tarifa.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
