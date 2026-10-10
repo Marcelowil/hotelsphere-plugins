@@ -8,42 +8,156 @@ namespace HotelSphere.Business
 {
     public class HospedeBusiness
     {
+        private const int IdadeMinimaResponsavel = 18;
+
+        private static class Campos
+        {
+            public const string Nome = "firstname";
+            public const string Sobrenome = "lastname";
+            public const string Cpf = "hsp_cpf";
+            public const string Hotel = "hsp_hotel";
+            public const string DataNascimento = "hsp_datanascimento";
+            public const string PreferenciaDeQuarto = "hsp_preferenciaquarto";
+        }
+
+        private static class Mensagens
+        {
+            public const string HospedeObrigatorio = "O hóspede é obrigatório para a reserva.";
+            public const string HospedeNaoPertenceAoHotel = "O hóspede não pertence ao hotel da reserva.";
+            public const string HospedeSemHotel = "O hóspede não possui hotel vinculado.";
+            public const string HospedeSemDataNascimento = "O hóspede responsável não possui data de nascimento informada.";
+            public const string HospedeResponsavelMenorDeIdade = "O hóspede responsável deve ter pelo menos {0} anos.";
+            public const string CpfJaCadastrado = "O CPF {0} já possui cadastro neste hotel.";
+            public const string CpfObrigatorio = "O hóspede não possui um CPF vinculado.";
+            public const string FormatoCpfInvalido = "O CPF preenchido é inválido.";
+            public const string DataNascimentoNoFuturo = "A data de nascimento não pode ser maior que o dia de hoje.";
+        }
+
         private readonly LocalPluginContext _context;
         private readonly HospedeDAO _hospedeDAO;
 
         public HospedeBusiness(LocalPluginContext context)
         {
             _context = context;
-            _hospedeDAO = new HospedeDAO(_context);
+            _hospedeDAO = new HospedeDAO(context);
         }
 
-        public void ValidarDataNascimentoFutura(Entity target)
+        #region Métodos públicos
+
+        public void ValidarCriacao(Entity target)
         {
-            var dataNascimento = target.Contains("hsp_datanascimento") ? target.GetAttributeValue<DateTime>("hsp_datanascimento")
-                : throw new InvalidPluginExecutionException("Não é possível salvar um hóspede sem a data de nascimento preenchida.");
+            ValidarDataNascimentoFutura(target);
+            ValidarCpf(target);
+            ConsultarCpfCadastradoPorHotel(target);
+        }
+
+        public void ValidarAtualizacao(Entity target, Entity preImage)
+        {
+            bool cpfAlterado = target.Contains(Campos.Cpf);
+            bool hotelAlterado = target.Contains(Campos.Hotel);
+
+            if (target.Contains(Campos.DataNascimento))
+                ValidarDataNascimentoFutura(target);
+
+            if (cpfAlterado)
+                ValidarCpf(target);
+
+            if (cpfAlterado || hotelAlterado)
+                ConsultarCpfCadastradoPorHotel(target, preImage);
+        }
+
+        public void ValidarParaReserva(EntityReference hospedeRef, Guid hotelDaReserva)
+        {
+            Entity hospede = CarregarHospede(hospedeRef);
+
+            ValidarHospedePertenceHotel(hospede, hotelDaReserva);
+            ValidarResponsavelMaiorDeIdade(hospede);
+        }
+
+        #endregion
+
+        #region Regras do cadastro do hóspede
+
+        private void ValidarDataNascimentoFutura(Entity hospede)
+        {
+            DateTime dataNascimento = ExigirDataNascimento(hospede);
 
             if (dataNascimento > DateTime.Today)
-                throw new InvalidPluginExecutionException("A data de nascimento não pode ser maior que o dia de hoje.");
+                throw new InvalidPluginExecutionException(Mensagens.DataNascimentoNoFuturo);
         }
 
-        public void ValidarCpf(Entity target)
+        private void ValidarCpf(Entity target)
         {
-            string cpf = target.Contains("hsp_cpf") ? target.GetAttributeValue<string>("hsp_cpf")
-                : throw new InvalidPluginExecutionException("Não é possível salvar um hóspede sem o CPF preenchido.");
+            string cpf = target.GetAttributeValue<string>(Campos.Cpf) ??
+                throw new InvalidPluginExecutionException(Mensagens.CpfObrigatorio);
 
-            if (!DocumentoValidator.CpfOuCnpjEhValido(cpf))
-                throw new InvalidPluginExecutionException("O CPF preenchido é inválido.");
+            if (!DocumentoValidator.CpfEhValido(cpf))
+                throw new InvalidPluginExecutionException(Mensagens.FormatoCpfInvalido);
         }
 
-        public void ConsultarCpfCadastradoPorHotel(Entity target, Entity preImage = null)
+        private void ConsultarCpfCadastradoPorHotel(Entity target, Entity preImage = null)
         {
-            EntityReference hotel = preImage == null ? target.GetAttributeValue<EntityReference>("hsp_hotel") :
-                preImage.GetAttributeValue<EntityReference>("hsp_hotel");
+            string cpf = ObterValorEfetivo<string>(target, preImage, Campos.Cpf);
+            EntityReference hotel = ObterValorEfetivo<EntityReference>(target, preImage, Campos.Hotel);
 
-            string cpf = target.GetAttributeValue<string>("hsp_cpf");
+            if (hotel == null || string.IsNullOrEmpty(cpf))
+                return;
 
-            if (_hospedeDAO.ExisteCpfPorHotel(cpf, hotel))
-                throw new InvalidPluginExecutionException($"O CPF {cpf} já possuí cadastro neste hotel.");
+            if (_hospedeDAO.ExisteCpfPorHotel(cpf, hotel, target.Id))
+                throw new InvalidPluginExecutionException(string.Format(Mensagens.CpfJaCadastrado, cpf));
         }
+
+        #endregion
+
+        #region Regras para a reserva
+
+        private Entity CarregarHospede(EntityReference hospedeRef)
+        {
+            if (hospedeRef == null)
+                throw new InvalidPluginExecutionException(Mensagens.HospedeObrigatorio);
+
+            return _hospedeDAO.ObterPorId(hospedeRef.Id) ??
+                throw new InvalidPluginExecutionException(Mensagens.HospedeObrigatorio);
+        }
+
+        private static void ValidarHospedePertenceHotel(Entity hospede, Guid hotelDaReserva)
+        {
+            EntityReference hotelDoHospede = hospede.GetAttributeValue<EntityReference>(Campos.Hotel)
+                ?? throw new InvalidPluginExecutionException(Mensagens.HospedeSemHotel);
+
+            if (hotelDoHospede.Id != hotelDaReserva)
+                throw new InvalidPluginExecutionException(Mensagens.HospedeNaoPertenceAoHotel);
+        }
+
+        private static void ValidarResponsavelMaiorDeIdade(Entity hospede)
+        {
+            DateTime dataNascimento = ExigirDataNascimento(hospede);
+
+            int idade = DataHelper.CalcularIdade(dataNascimento);
+
+            if (idade < IdadeMinimaResponsavel)
+                throw new InvalidPluginExecutionException(
+                    string.Format(Mensagens.HospedeResponsavelMenorDeIdade, IdadeMinimaResponsavel));
+        }
+
+        #endregion
+
+        #region Auxiliares
+
+        private static DateTime ExigirDataNascimento(Entity hospede)
+        {
+            return hospede.GetAttributeValue<DateTime?>(Campos.DataNascimento) ??
+                throw new InvalidPluginExecutionException(Mensagens.HospedeSemDataNascimento);
+        }
+
+        private static T ObterValorEfetivo<T>(Entity target, Entity preImage, string atributo)
+        {
+            if (target.Contains(atributo))
+                return target.GetAttributeValue<T>(atributo);
+
+            return preImage != null ? preImage.GetAttributeValue<T>(atributo) : default(T);
+        }
+
+        #endregion
     }
 }

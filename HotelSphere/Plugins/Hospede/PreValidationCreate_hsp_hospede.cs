@@ -13,10 +13,8 @@ namespace HotelSphere.Plugins.Hospede
             if (!(context.Context.InputParameters["Target"] is Entity target))
                 return;
 
-            HospedeBusiness hospedeBusiness = new HospedeBusiness(context);
-            hospedeBusiness.ValidarDataNascimentoFutura(target);
-            hospedeBusiness.ValidarCpf(target);
-            hospedeBusiness.ConsultarCpfCadastradoPorHotel(target);
+            new HospedeBusiness(context).ValidarCriacao(target);
+
         }
     }
 }

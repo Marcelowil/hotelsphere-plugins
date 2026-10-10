@@ -16,16 +16,7 @@ namespace HotelSphere.Plugins.Hospede
             if (!(context.Context.PreEntityImages["preImage"] is Entity preImage))
                 return;
 
-            HospedeBusiness hospedeBusiness = new HospedeBusiness(context);
-
-            if (target.Contains("hsp_datanascimento"))
-                hospedeBusiness.ValidarDataNascimentoFutura(target);
-
-            if (target.Contains("hsp_cpf"))
-            {
-                hospedeBusiness.ValidarCpf(target);
-                hospedeBusiness.ConsultarCpfCadastradoPorHotel(target, preImage);
-            }
+            new HospedeBusiness(context).ValidarAtualizacao(target, preImage);
         }
     }
 }
