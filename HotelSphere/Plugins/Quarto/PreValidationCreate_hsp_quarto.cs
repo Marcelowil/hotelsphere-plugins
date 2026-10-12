@@ -13,9 +13,7 @@ namespace HotelSphere.Plugins.Quarto
             if (!(context.Context.InputParameters["Target"] is Entity target))
                 return;
 
-            QuartoBusiness business = new QuartoBusiness(context);
-            business.ValidarQuartoDuplicado(target);
+            new QuartoBusiness(context).ValidarCriacao(target);
         }
-
     }
 }

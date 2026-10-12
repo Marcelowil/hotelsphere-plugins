@@ -1,7 +1,7 @@
 ﻿using HotelSphere.Base;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
-using System.Web.UI.WebControls;
+using System;
 
 namespace HotelSphere.DAO
 {
@@ -35,6 +35,13 @@ namespace HotelSphere.DAO
                         </fetch>");
 
             return _context.Service.RetrieveMultiple(fetchQuartos);
+        }
+
+        public Entity ObterPorId(Guid quartoId)
+        {
+            var columnSet = new ColumnSet("hsp_numerodoquarto", "hsp_hotel", "hsp_tipodequarto", "hsp_statusquarto");
+
+            return _context.Service.Retrieve("hsp_quarto", quartoId, columnSet);
         }
     }
 }

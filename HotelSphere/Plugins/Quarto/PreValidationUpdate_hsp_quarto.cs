@@ -16,8 +16,7 @@ namespace HotelSphere.Plugins.Quarto
             if (!(context.Context.PreEntityImages["preImage"] is Entity preImage))
                 return;
 
-            if (target.Contains("hsp_numerodoquarto"))
-                new QuartoBusiness(context).ValidarQuartoDuplicado(target, preImage);
+            new QuartoBusiness(context).ValidarAtualizacao(target, preImage);
         }
     }
 }

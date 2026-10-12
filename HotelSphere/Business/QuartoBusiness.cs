@@ -1,36 +1,138 @@
 ﻿using HotelSphere.Base;
 using HotelSphere.DAO;
 using Microsoft.Xrm.Sdk;
+using System;
 
 namespace HotelSphere.Business
 {
     public class QuartoBusiness
     {
+        private static class Campos
+        {
+            public const string NumeroQuarto = "hsp_numerodoquarto";
+            public const string Hotel = "hsp_hotel";
+            public const string TipoDeQuarto = "hsp_tipodequarto";
+            public const string Andar = "hsp_andar";
+            public const string StatusQuarto = "hsp_statusquarto";
+        }
+
+        private static class Mensagens
+        {
+            public const string QuartoObrigatorio = "O quarto é obrigatório para a reserva.";
+            public const string QuartoSemHotel = "O quarto não possuí hotel vinculado.";
+            public const string QuartoSemStatus = "O quarto não possuí um status preenchido.";
+            public const string QuartoIndisponivel = "O quarto está indisponível para reserva";
+            public const string QuartoNaoPertenceAoHotel = "Quarto não localizado neste hotel.";
+            public const string NumeroQuartoJaCadastrado = "Já existe um quarto com o número {0} cadastrado neste hotel.";
+        }
+
         private readonly LocalPluginContext _context;
+        private readonly QuartoDAO _quartoDAO;
 
         public QuartoBusiness(LocalPluginContext context)
         {
             _context = context;
+            _quartoDAO = new QuartoDAO(context);
         }
 
-        public void ValidarQuartoDuplicado(Entity target, Entity preImage = null)
+        #region Métodos públicos
+
+        public void ValidarCriacao(Entity target)
         {
-            QuartoDAO quartoDAO = new QuartoDAO(_context);
+            ValidarQuartoDuplicado(target);
+        }
 
-            EntityReference hotel = preImage == null ? target.GetAttributeValue<EntityReference>("hsp_hotel") 
-                : preImage.GetAttributeValue<EntityReference>("hsp_hotel");
+        public void ValidarAtualizacao(Entity target, Entity preImage)
+        {
+            bool NumeroQuartoFoiAlterado = target.Contains(Campos.NumeroQuarto);
+            bool HotelFoiAlterado = target.Contains(Campos.Hotel);
 
-            EntityCollection quartos = quartoDAO.BuscarQuartosPorHotel(hotel);
+            if (NumeroQuartoFoiAlterado || HotelFoiAlterado)
+                ValidarQuartoDuplicado(target, preImage);
+        }
 
-            string numeroCadastrado = target.GetAttributeValue<string>("hsp_numerodoquarto");
+        public void ValidarParaReserva(EntityReference quartoRef, Guid hotelDaReservaId)
+        {
+            Entity quarto = CarregarQuarto(quartoRef);
+
+            ValidarQuartoPertenceHotel(quarto, hotelDaReservaId);
+            ValidarQuartoDisponivel(quarto);
+        }
+
+        #endregion
+
+        #region Regras de Cadastro do Quarto
+
+        private void ValidarQuartoDuplicado(Entity target, Entity preImage = null)
+        {
+            EntityReference hotel = ObterValorEfetivo<EntityReference>(target, preImage, Campos.Hotel);
+            string numeroCadastrado = ObterValorEfetivo<string>(target, preImage, Campos.NumeroQuarto);
+
+            EntityCollection quartos = _quartoDAO.BuscarQuartosPorHotel(hotel);
 
             foreach (Entity quarto in quartos.Entities)
             {
-                if (numeroCadastrado.Equals(quarto.GetAttributeValue<string>("hsp_numerodoquarto")))
+                if (numeroCadastrado.Equals(quarto.GetAttributeValue<string>(Campos.NumeroQuarto)))
                 {
-                    throw new InvalidPluginExecutionException($"Já existe um quarto com o número {numeroCadastrado} cadastrado.");
+                    throw new InvalidPluginExecutionException(
+                        string.Format(Mensagens.NumeroQuartoJaCadastrado, numeroCadastrado));
                 }
             }
         }
+
+        #endregion
+
+        #region Regras para a reserva
+
+        private static void ValidarQuartoPertenceHotel(Entity quarto, Guid hotelDaReserva)
+        {
+            EntityReference hotelDoQuarto = quarto.GetAttributeValue<EntityReference>(Campos.Hotel) ??
+                throw new InvalidPluginExecutionException(Mensagens.QuartoSemHotel);
+
+            if (hotelDoQuarto.Id != hotelDaReserva)
+                throw new InvalidPluginExecutionException(Mensagens.QuartoNaoPertenceAoHotel);
+        }
+
+        private static void ValidarQuartoDisponivel(Entity quarto)
+        {
+            string statusAtual = quarto.FormattedValues[Campos.StatusQuarto] ??
+                throw new InvalidPluginExecutionException(Mensagens.QuartoSemStatus);
+
+            if (QuartoEstaEmManutencao(statusAtual) || QuartoEstaBloqueado(statusAtual))
+                throw new InvalidPluginExecutionException(Mensagens.QuartoIndisponivel + " - Status: " + statusAtual);
+        }
+
+        private static bool QuartoEstaEmManutencao(string statusAtualQuarto)
+        {
+            return statusAtualQuarto.Equals("Manutenção");
+        }
+
+        private static bool QuartoEstaBloqueado(string statusAtualQuarto)
+        {
+            return statusAtualQuarto.Equals("Bloqueado");
+        }
+
+        #endregion
+
+        #region Auxiliares
+
+        private Entity CarregarQuarto(EntityReference quartoRef)
+        {
+            if (quartoRef == null)
+                throw new InvalidPluginExecutionException(Mensagens.QuartoObrigatorio);
+
+            return _quartoDAO.ObterPorId(quartoRef.Id) ??
+                throw new InvalidPluginExecutionException(Mensagens.QuartoObrigatorio);
+        }
+
+        private static T ObterValorEfetivo<T>(Entity target, Entity preImage, string atributo)
+        {
+            if (target.Contains(atributo))
+                return target.GetAttributeValue<T>(atributo);
+
+            return preImage != null ? preImage.GetAttributeValue<T>(atributo) : default(T);
+        }
+
+        #endregion
     }
 }
