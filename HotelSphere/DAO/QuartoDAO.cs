@@ -2,6 +2,7 @@
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 using System;
+using System.Linq;
 
 namespace HotelSphere.DAO
 {
@@ -42,6 +43,26 @@ namespace HotelSphere.DAO
             var columnSet = new ColumnSet("hsp_numerodoquarto", "hsp_hotel", "hsp_tipodequarto", "hsp_statusquarto");
 
             return _context.Service.Retrieve("hsp_quarto", quartoId, columnSet);
+        }
+
+        public int ObterCapacidade(Guid quartoId)
+        {
+            var fetchQuarto = new FetchExpression($@"
+                        <fetch version='1.0' output-format='xml-platform' mapping='logical'>
+                              <entity name='hsp_quarto'>
+                                <attribute name='hsp_quartoid'/>
+                                <filter type='and'>
+                                  <condition attribute='hsp_quartoid' operator='eq' value='{quartoId}'/>
+                                </filter>
+                                <link-entity name='hsp_tipodequarto' from='hsp_tipodequartoid' to='hsp_tipodequarto' alias='tipo'>
+                                  <attribute name='hsp_capacidade'/>
+                                </link-entity>
+                              </entity>
+                            </fetch>");
+
+            var resultado = _context.Service.RetrieveMultiple(fetchQuarto).Entities.First();
+
+            return (int) resultado.GetAttributeValue<AliasedValue>("tipo.hsp_capacidade").Value;
         }
     }
 }

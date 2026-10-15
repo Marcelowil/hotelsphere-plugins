@@ -19,10 +19,6 @@ namespace HotelSphere.Business
         private static class Mensagens
         {
             public const string QuartoObrigatorio = "O quarto é obrigatório para a reserva.";
-            public const string QuartoSemHotel = "O quarto não possuí hotel vinculado.";
-            public const string QuartoSemStatus = "O quarto não possuí um status preenchido.";
-            public const string QuartoIndisponivel = "O quarto está indisponível para reserva";
-            public const string QuartoNaoPertenceAoHotel = "Quarto não localizado neste hotel.";
             public const string NumeroQuartoJaCadastrado = "Já existe um quarto com o número {0} cadastrado neste hotel.";
         }
 
@@ -51,12 +47,22 @@ namespace HotelSphere.Business
                 ValidarQuartoDuplicado(target, preImage);
         }
 
-        public void ValidarParaReserva(EntityReference quartoRef, Guid hotelDaReservaId)
-        {
-            Entity quarto = CarregarQuarto(quartoRef);
 
-            ValidarQuartoPertenceHotel(quarto, hotelDaReservaId);
-            ValidarQuartoDisponivel(quarto);
+        #endregion
+
+        #region Consultas
+        public Entity ObterQuartoPorId(EntityReference quartoRef)
+        {
+            if (quartoRef == null)
+                throw new InvalidPluginExecutionException(Mensagens.QuartoObrigatorio);
+
+            return _quartoDAO.ObterPorId(quartoRef.Id) ??
+                throw new InvalidPluginExecutionException(Mensagens.QuartoObrigatorio);
+        }
+
+        public int ObterCapacidade(EntityReference quartoRef)
+        {
+            return _quartoDAO.ObterCapacidade(quartoRef.Id);
         }
 
         #endregion
@@ -82,48 +88,7 @@ namespace HotelSphere.Business
 
         #endregion
 
-        #region Regras para a reserva
-
-        private static void ValidarQuartoPertenceHotel(Entity quarto, Guid hotelDaReserva)
-        {
-            EntityReference hotelDoQuarto = quarto.GetAttributeValue<EntityReference>(Campos.Hotel) ??
-                throw new InvalidPluginExecutionException(Mensagens.QuartoSemHotel);
-
-            if (hotelDoQuarto.Id != hotelDaReserva)
-                throw new InvalidPluginExecutionException(Mensagens.QuartoNaoPertenceAoHotel);
-        }
-
-        private static void ValidarQuartoDisponivel(Entity quarto)
-        {
-            string statusAtual = quarto.FormattedValues[Campos.StatusQuarto] ??
-                throw new InvalidPluginExecutionException(Mensagens.QuartoSemStatus);
-
-            if (QuartoEstaEmManutencao(statusAtual) || QuartoEstaBloqueado(statusAtual))
-                throw new InvalidPluginExecutionException(Mensagens.QuartoIndisponivel + " - Status: " + statusAtual);
-        }
-
-        private static bool QuartoEstaEmManutencao(string statusAtualQuarto)
-        {
-            return statusAtualQuarto.Equals("Manutenção");
-        }
-
-        private static bool QuartoEstaBloqueado(string statusAtualQuarto)
-        {
-            return statusAtualQuarto.Equals("Bloqueado");
-        }
-
-        #endregion
-
         #region Auxiliares
-
-        private Entity CarregarQuarto(EntityReference quartoRef)
-        {
-            if (quartoRef == null)
-                throw new InvalidPluginExecutionException(Mensagens.QuartoObrigatorio);
-
-            return _quartoDAO.ObterPorId(quartoRef.Id) ??
-                throw new InvalidPluginExecutionException(Mensagens.QuartoObrigatorio);
-        }
 
         private static T ObterValorEfetivo<T>(Entity target, Entity preImage, string atributo)
         {

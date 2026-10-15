@@ -14,10 +14,14 @@ namespace HotelSphere.Business
         {
             public const string Nome = "firstname";
             public const string Sobrenome = "lastname";
+            public const string NomeCompleto = "fullname";
             public const string Cpf = "hsp_cpf";
             public const string Hotel = "hsp_hotel";
             public const string DataNascimento = "hsp_datanascimento";
             public const string PreferenciaDeQuarto = "hsp_preferenciaquarto";
+            public const string Status = "statuscode";
+            public const int StatusAtivo = 1;
+            public const int StatusInativo = 2;
         }
 
         private static class Mensagens
@@ -31,6 +35,8 @@ namespace HotelSphere.Business
             public const string CpfObrigatorio = "O hóspede não possui um CPF vinculado.";
             public const string FormatoCpfInvalido = "O CPF preenchido é inválido.";
             public const string DataNascimentoNoFuturo = "A data de nascimento não pode ser maior que o dia de hoje.";
+            public const string HospedeInativo = "O hóspede {0} está inativo.";
+            public const string HospedeSemStatus = "O hóspede não possuí status.";
         }
 
         private readonly LocalPluginContext _context;
@@ -64,14 +70,6 @@ namespace HotelSphere.Business
 
             if (cpfAlterado || hotelAlterado)
                 ConsultarCpfCadastradoPorHotel(target, preImage);
-        }
-
-        public void ValidarParaReserva(EntityReference hospedeRef, Guid hotelDaReserva)
-        {
-            Entity hospede = CarregarHospede(hospedeRef);
-
-            ValidarHospedePertenceHotel(hospede, hotelDaReserva);
-            ValidarResponsavelMaiorDeIdade(hospede);
         }
 
         #endregion
@@ -109,9 +107,9 @@ namespace HotelSphere.Business
 
         #endregion
 
-        #region Regras para a reserva
+        #region Consultas
 
-        private Entity CarregarHospede(EntityReference hospedeRef)
+        public Entity ObterHospedePorId(EntityReference hospedeRef)
         {
             if (hospedeRef == null)
                 throw new InvalidPluginExecutionException(Mensagens.HospedeObrigatorio);
@@ -120,24 +118,9 @@ namespace HotelSphere.Business
                 throw new InvalidPluginExecutionException(Mensagens.HospedeObrigatorio);
         }
 
-        private static void ValidarHospedePertenceHotel(Entity hospede, Guid hotelDaReserva)
+        public EntityCollection ObterHospedesPorIdDaReserva(Guid reservaId)
         {
-            EntityReference hotelDoHospede = hospede.GetAttributeValue<EntityReference>(Campos.Hotel)
-                ?? throw new InvalidPluginExecutionException(Mensagens.HospedeSemHotel);
-
-            if (hotelDoHospede.Id != hotelDaReserva)
-                throw new InvalidPluginExecutionException(Mensagens.HospedeNaoPertenceAoHotel);
-        }
-
-        private static void ValidarResponsavelMaiorDeIdade(Entity hospede)
-        {
-            DateTime dataNascimento = ExigirDataNascimento(hospede);
-
-            int idade = DataHelper.CalcularIdade(dataNascimento);
-
-            if (idade < IdadeMinimaResponsavel)
-                throw new InvalidPluginExecutionException(
-                    string.Format(Mensagens.HospedeResponsavelMenorDeIdade, IdadeMinimaResponsavel));
+            return _hospedeDAO.ObterPorReserva(reservaId);
         }
 
         #endregion
@@ -148,6 +131,23 @@ namespace HotelSphere.Business
         {
             return hospede.GetAttributeValue<DateTime?>(Campos.DataNascimento) ??
                 throw new InvalidPluginExecutionException(Mensagens.HospedeSemDataNascimento);
+        }
+
+        public int ObterIdade(Entity hospede)
+        {
+            DateTime dataNascimento = ExigirDataNascimento(hospede);
+
+            return DataHelper.CalcularIdade(dataNascimento);
+        }
+
+        public void ValidarHospedeAtivo(Entity hospede)
+        {
+            int? status = hospede.GetAttributeValue<OptionSetValue>(Campos.Status)?.Value ??
+                throw new InvalidPluginExecutionException(Mensagens.HospedeSemStatus);
+
+            if (status != Campos.StatusAtivo)
+                throw new InvalidPluginExecutionException(
+                    string.Format(Mensagens.HospedeInativo, hospede.GetAttributeValue<string>(Campos.NomeCompleto)));
         }
 
         private static T ObterValorEfetivo<T>(Entity target, Entity preImage, string atributo)

@@ -45,7 +45,7 @@ namespace HotelSphere.DAO
         {
             var query = new QueryExpression("contact")
             {
-                ColumnSet = new ColumnSet("fullname", "hsp_hotel")
+                ColumnSet = new ColumnSet("fullname", "hsp_hotel", "statuscode")
             };
 
             var linkIntersecao = query.AddLink("hsp_hospede_reserva_association", "contactid", "contactid");
