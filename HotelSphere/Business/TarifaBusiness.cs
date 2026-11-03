@@ -50,5 +50,10 @@ namespace HotelSphere.Business
                 }
             }
         }
+
+        public EntityCollection BuscarTarifasPorTipoQuartoEPeriodo(EntityReference tipoQuartoRef, Guid hotelId, DateTime dataInicio, DateTime dataFinal)
+        {
+            return _tarifaDAO.BuscarPorTipoDeQuartoEPeriodo(tipoQuartoRef.Id, hotelId, dataInicio, dataFinal);
+        }
     }
 }

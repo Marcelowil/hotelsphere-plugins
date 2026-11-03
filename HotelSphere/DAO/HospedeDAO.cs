@@ -38,7 +38,7 @@ namespace HotelSphere.DAO
 
         public Entity ObterPorId(Guid hospedeId)
         {
-            return _context.Service.Retrieve("contact", hospedeId, new ColumnSet("hsp_datanascimento", "hsp_hotel"));
+            return _context.Service.Retrieve("contact", hospedeId, new ColumnSet("hsp_datanascimento", "hsp_hotel", "statuscode"));
         }
 
         public EntityCollection ObterPorReserva(Guid reservaId)

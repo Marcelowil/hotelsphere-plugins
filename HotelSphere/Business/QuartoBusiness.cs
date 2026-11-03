@@ -20,6 +20,7 @@ namespace HotelSphere.Business
         {
             public const string QuartoObrigatorio = "O quarto é obrigatório para a reserva.";
             public const string NumeroQuartoJaCadastrado = "Já existe um quarto com o número {0} cadastrado neste hotel.";
+            public const string TipoDeQuartoNaoPreenchido = "O quarto {0} não possuí um tipo de quarto preenchido.";
         }
 
         private readonly LocalPluginContext _context;
@@ -65,6 +66,13 @@ namespace HotelSphere.Business
             return _quartoDAO.ObterCapacidade(quartoRef.Id);
         }
 
+        public EntityReference ObterTipoDeQuarto(EntityReference quartoRef)
+        {
+            Entity quarto = ObterQuartoPorId(quartoRef);
+
+            return quarto.GetAttributeValue<EntityReference>("hsp_tipodequarto") ?? 
+                throw new InvalidPluginExecutionException(Mensagens.TipoDeQuartoNaoPreenchido);
+        }
         #endregion
 
         #region Regras de Cadastro do Quarto

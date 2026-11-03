@@ -105,6 +105,7 @@
     <Compile Include="DAO\HospedeDAO.cs" />
     <Compile Include="DAO\HotelDAO.cs" />
     <Compile Include="DAO\QuartoDAO.cs" />
+    <Compile Include="DAO\ReservaDAO.cs" />
     <Compile Include="DAO\TarifaDAO.cs" />
     <Compile Include="Helper\DataHelper.cs" />
     <Compile Include="Helper\DocumentoValidator.cs" />
@@ -114,6 +115,10 @@
     <Compile Include="Plugins\Hotel\PreValidationUpdate_hsp_hotel.cs" />
     <Compile Include="Plugins\Quarto\PreValidationCreate_hsp_quarto.cs" />
     <Compile Include="Plugins\Quarto\PreValidationUpdate_hsp_quarto.cs" />
+    <Compile Include="Plugins\Reserva\PostOperationCreateSync_hsp_reserva.cs" />
+    <Compile Include="Plugins\Reserva\PostOperationUpdateSync_hsp_reserva.cs" />
+    <Compile Include="Plugins\Reserva\PreOperationCreate_hsp_reserva.cs" />
+    <Compile Include="Plugins\Reserva\PreOperationUpdate_hsp_reserva.cs" />
     <Compile Include="Plugins\Reserva\PreValidationCreate_hsp_reserva.cs" />
     <Compile Include="Plugins\Reserva\PreValidationUpdate_hsp_reserva.cs" />
     <Compile Include="Plugins\Tarifa\PreValidationCreate_hsp_tarifa.cs" />

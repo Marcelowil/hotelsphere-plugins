@@ -41,5 +41,29 @@ namespace HotelSphere.DAO
 
             return _context.Service.RetrieveMultiple(fetchTarifas);
         }
+
+        public EntityCollection BuscarPorTipoDeQuartoEPeriodo(Guid tipoDeQuartoId, Guid hotelId, DateTime dataInicio, DateTime dataFinal)
+        {
+            var fetchTarifas = new FetchExpression($@"<fetch version='1.0' mapping='logical'>
+                              <entity name='hsp_tarifa'>
+                                <attribute name='hsp_tarifaid'/>
+                                <attribute name='hsp_codigotarifa'/>
+                                <attribute name='hsp_datainicio'/>
+                                <attribute name='hsp_datafinal'/>
+                                <attribute name='hsp_tarifavigente'/>
+                                <attribute name='hsp_valordiaria'/>
+                                <order attribute='hsp_datainicio' descending='false'/>
+                                <filter type='and'>
+                                  <condition attribute='hsp_datafinal' operator='on-or-after' value='{dataInicio}'/>
+                                  <condition attribute='hsp_datainicio' operator='on-or-before' value='{dataFinal}'/>
+                                  <condition attribute='hsp_tipodequarto' operator='eq' value='{tipoDeQuartoId}'/>
+                                  <condition attribute='hsp_hotel' operator='eq' value='{hotelId}'/>
+                                  <condition attribute='statecode' operator='eq' value='0'/>
+                                </filter>
+                              </entity>
+                            </fetch>");
+
+            return _context.Service.RetrieveMultiple(fetchTarifas);
+        }
     }
 }
