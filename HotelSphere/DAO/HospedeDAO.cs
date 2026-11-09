@@ -8,7 +8,7 @@ namespace HotelSphere.DAO
 {
     public class HospedeDAO
     {
-        public LocalPluginContext _context;
+        private LocalPluginContext _context;
 
         public HospedeDAO(LocalPluginContext context)
         {

@@ -16,8 +16,7 @@ namespace HotelSphere.Plugins.Tarifa
             if (!(context.Context.PreEntityImages["preImage"] is Entity preImage))
                 return;
 
-            if (target.Contains("hsp_datainicio") || target.Contains("hsp_datafinal"))
-                new TarifaBusiness(context).ValidarDuplicidadeTarifa(target, preImage);
+            new TarifaBusiness(context).ValidarAtualiazacao(target, preImage);
         }
     }
 }

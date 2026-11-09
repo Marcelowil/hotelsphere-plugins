@@ -14,7 +14,7 @@ namespace HotelSphere.Plugins.Tarifa
             if (!(context.Context.InputParameters["Target"] is Entity target))
                 return;
 
-            new TarifaBusiness(context).ValidarDuplicidadeTarifa(target);
+            new TarifaBusiness(context).ValidarCriacao(target);
         }
     }
 }

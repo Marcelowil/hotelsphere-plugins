@@ -14,8 +14,12 @@ namespace HotelSphere.DAO
             _context = context;
         }
 
-        public EntityCollection BuscarTarifasPorHotelETipoQuarto(Guid tarifaId, Guid hotelId, Guid tipoQuartoId)
+        public EntityCollection BuscarTarifasPorHotelETipoQuarto(Guid? tarifaId, Guid hotelId, Guid tipoQuartoId)
         {
+            string filtroIgnorarTarifa = (tarifaId.HasValue && tarifaId != Guid.Empty) ?
+                $"<condition attribute = 'hsp_tarifaid' operator= 'ne' value = '{tarifaId}'/>" :
+                string.Empty;
+
             var fetchTarifas = new FetchExpression($@"<fetch version='1.0' mapping='logical'>
                                       <entity name='hsp_tarifa'>
                                         <attribute name='hsp_nome'/>
@@ -34,7 +38,7 @@ namespace HotelSphere.DAO
                                           <condition attribute='statecode' operator='eq' value='0'/>
                                           <condition attribute='hsp_hotel' operator='eq' value='{hotelId}'/>
                                           <condition attribute='hsp_tipodequarto' operator='eq' value='{tipoQuartoId}'/>
-                                          <condition attribute='hsp_tarifaid' operator='ne' value='{tarifaId}'/>
+                                         {filtroIgnorarTarifa}
                                         </filter>
                                       </entity>
                                     </fetch>");

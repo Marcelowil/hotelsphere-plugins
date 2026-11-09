@@ -102,11 +102,14 @@
     <Compile Include="Business\QuartoBusiness.cs" />
     <Compile Include="Business\ReservaBusiness.cs" />
     <Compile Include="Business\TarifaBusiness.cs" />
+    <Compile Include="Business\TipoQuartoBusiness.cs" />
+    <Compile Include="DAO\DiariaDAO.cs" />
     <Compile Include="DAO\HospedeDAO.cs" />
     <Compile Include="DAO\HotelDAO.cs" />
     <Compile Include="DAO\QuartoDAO.cs" />
     <Compile Include="DAO\ReservaDAO.cs" />
     <Compile Include="DAO\TarifaDAO.cs" />
+    <Compile Include="DAO\TipoQuartoDAO.cs" />
     <Compile Include="Helper\DataHelper.cs" />
     <Compile Include="Helper\DocumentoValidator.cs" />
     <Compile Include="Plugins\Hospede\PreValidationCreate_hsp_hospede.cs" />

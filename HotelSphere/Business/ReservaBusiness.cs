@@ -74,6 +74,7 @@ namespace HotelSphere.Business
         private readonly HospedeBusiness _hospedeBusiness;
         private readonly TarifaBusiness _tarifaBusiness;
         private readonly ReservaDAO _reservaDAO;
+        private readonly DiariaDAO _diariaDAO;
 
         public ReservaBusiness(LocalPluginContext context)
         {
@@ -82,6 +83,7 @@ namespace HotelSphere.Business
             _hospedeBusiness = new HospedeBusiness(context);
             _tarifaBusiness = new TarifaBusiness(context);
             _reservaDAO = new ReservaDAO(context);
+            _diariaDAO = new DiariaDAO(context);
         }
 
         public void ValidarCriacao(Entity target)
@@ -197,7 +199,7 @@ namespace HotelSphere.Business
                 throw new InvalidPluginExecutionException(Mensagens.ValorTotalDivergente);
 
             target[Campos.ValorDiaria] = valorMedioDiarias;
-            _reservaDAO.CriarDiariasDaReserva(diarias);
+            _diariaDAO.CriarDiariasDaReserva(diarias);
         }
 
         private Money CalcularValorTotalDiarias(EntityCollection diarias)
@@ -309,7 +311,7 @@ namespace HotelSphere.Business
         private EntityCollection CriarDiariasDaReserva(Guid reservaId, EntityCollection tarifas, DateTime dataEntrada, DateTime dataSaida)
         {
             EntityCollection diarias = new EntityCollection() { EntityName = Campos.ReservaDiaria };
-            _reservaDAO.ExcluirDiariasDaReserva(reservaId);
+            _diariaDAO.ExcluirDiariasDaReserva(reservaId);
 
             for (DateTime diaria = dataEntrada; diaria < dataSaida; diaria = diaria.AddDays(1))
             {
